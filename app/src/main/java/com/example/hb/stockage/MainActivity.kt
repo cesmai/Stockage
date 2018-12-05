@@ -2,15 +2,25 @@ package com.example.hb.stockage
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import com.example.hb.stockage.app.src.main.Course
+import com.example.hb.stockage.app.src.main.CoursesService
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.info
 import org.jetbrains.anko.uiThread
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity(), AnkoLogger {
 
     val courseDb by lazy { CourseDb() }
     var list = listOf<MobileCourse>()
+
+    private val url = "http://mobile-courses-server.herokuapp.com/"
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +40,42 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
                 showList()
             }
         }
+
+
+        //=== Sample of HTTP GET
+
+        // Retrofit client
+        val retrofit = Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+
+        // service
+        val service = retrofit.create(CoursesService::class.java)
+
+        // GET
+        val courseRequest = service.listCourses()
+
+        courseRequest.enqueue(object: Callback<List<Course>> {
+
+            override fun onResponse(call: Call<List<Course>>, response: Response<List<Course>>) {
+                val allCourses = response.body()
+                if (allCourses != null) {
+                    info("MyApp >> HERE is ALL COURSES FROM HEROKU SERVER:")
+                    for (c in allCourses)
+                        info("MyApp >> one course : ${c.title} : ${c.img} ")
+                }
+            }
+
+            override fun onFailure(call: Call<List<Course>>, t: Throwable) {
+                error("KO")
+            }
+        })
     }
 
     private fun showList() {
-        info("NB COURSES : ${list.size}")
+        info("MyApp >> NB COURSES : ${list.size}")
         for (c in list)
-            info("Voici un course ${c.title}")
+            info("MyApp >> Voici un course ${c.title}")
     }
 }
