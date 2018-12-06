@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         // GET
         val courseRequest = service.listCourses()
 
+        // enqueue attend un objet de type Callback qu'on implémente à la volée entre les deux {}
         courseRequest.enqueue(object: Callback<List<Course>> {
 
             override fun onResponse(call: Call<List<Course>>, response: Response<List<Course>>) {
